@@ -3,36 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <title>Sessions_Log - Supabase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 80%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ffffff55;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #2563eb;
+    }
+    tr:nth-child(even) {
+      background-color: #1e293b;
+    }
+    .error {
+      color: #f87171;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Contenu de Sessions_Log</h1>
-  <pre id="output">Chargement...</pre>
+  <div>
+    <h1>Sessions_Log</h1>
+    <div id="error" class="error"></div>
+    <table id="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Player_id</th>
+          <th>Game_id</th>
+          <th>HasWon</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="4">Chargement...</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- SDK Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // URL de ton projet Supabase (pas la REST endpoint)
     const supabaseUrl = "https://pqdeamtxitjntvaqjtyu.supabase.co";
     const supabaseKey = "sb_publishable_gJkMopfPTbdTYYZuleayiA_X5oi5W0u";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function loadData() {
-      // Lecture simple de la table
-      const { data, error } = await supabase
-        .from("Sessions_Log")
-        .select("*");
+      const tableBody = document.getElementById("table-body");
+      const errorDiv = document.getElementById("error");
 
-      const output = document.getElementById("output");
+      try {
+        const { data, error } = await supabase
+          .from("Sessions_Log")
+          .select("*");
 
-      if (error) {
-        output.textContent = "Erreur : " + error.message;
-      } else if (data.length === 0) {
-        output.textContent = "Aucune donnée dans la table.";
-      } else {
-        // Affichage en JSON formaté
-        output.textContent = JSON.stringify(data, null, 2);
+        if (error) {
+          console.error(error);
+          errorDiv.textContent = "Erreur : " + error.message + " (vérifie RLS ou CORS)";
+          tableBody.innerHTML = "<tr><td colspan='4'>Aucune donnée</td></tr>";
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          tableBody.innerHTML = "<tr><td colspan='4'>Aucune donnée dans la table</td></tr>";
+          return;
+        }
+
+        // Générer le tableau
+        tableBody.innerHTML = "";
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.id}</td>
+            <td>${row.Player_id}</td>
+            <td>${row.Game_id}</td>
+            <td>${row.HasWon}</td>
+          `;
+          tableBody.appendChild(tr);
+        });
+
+      } catch (e) {
+        console.error(e);
+        errorDiv.textContent = "Erreur réseau / CORS : " + e.message;
+        tableBody.innerHTML = "<tr><td colspan='4'>Impossible de charger les données</td></tr>";
       }
     }
 
