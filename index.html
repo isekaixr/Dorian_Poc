@@ -55,29 +55,29 @@
     </table>
   </div>
 
-  <!-- SDK Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
-    const supabaseUrl = "https://pqdeamtxitjntvaqjtyu.supabase.co";
-    const supabaseKey = "sb_publishable_gJkMopfPTbdTYYZuleayiA_X5oi5W0u";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const SUPABASE_URL = 'https://pqdeamtxitjntvaqjtyu.supabase.co/rest/v1/Sessions_Log';
+    const API_KEY = 'sb_publishable_gJkMopfPTbdTYYZuleayiA_X5oi5W0u';
 
     async function loadData() {
       const tableBody = document.getElementById("table-body");
       const errorDiv = document.getElementById("error");
 
       try {
-        const { data, error } = await supabase
-          .from("Sessions_Log")
-          .select("*");
+        const res = await fetch(SUPABASE_URL, {
+          headers: {
+            "apikey": API_KEY,
+            "Authorization": "Bearer " + API_KEY,
+            "Content-Type": "application/json"
+          }
+        });
 
-        if (error) {
-          console.error(error);
-          errorDiv.textContent = "Erreur : " + error.message + " (vérifie RLS ou CORS)";
-          tableBody.innerHTML = "<tr><td colspan='4'>Aucune donnée</td></tr>";
-          return;
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} : ${text}`);
         }
+
+        const data = await res.json();
 
         if (!data || data.length === 0) {
           tableBody.innerHTML = "<tr><td colspan='4'>Aucune donnée dans la table</td></tr>";
@@ -104,7 +104,7 @@
       }
     }
 
-    loadData();
+    window.addEventListener("DOMContentLoaded", loadData);
   </script>
 
 </body>
