@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sessions_Log - Supabase</title>
+</head>
+<body>
+
+  <h1>Contenu de Sessions_Log</h1>
+  <pre id="output">Chargement...</pre>
+
+  <!-- SDK Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    // URL de ton projet Supabase (pas la REST endpoint)
+    const supabaseUrl = "https://pqdeamtxitjntvaqjtyu.supabase.co";
+    const supabaseKey = "sb_publishable_gJkMopfPTbdTYYZuleayiA_X5oi5W0u";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function loadData() {
+      // Lecture simple de la table
+      const { data, error } = await supabase
+        .from("Sessions_Log")
+        .select("*");
+
+      const output = document.getElementById("output");
+
+      if (error) {
+        output.textContent = "Erreur : " + error.message;
+      } else if (data.length === 0) {
+        output.textContent = "Aucune donnée dans la table.";
+      } else {
+        // Affichage en JSON formaté
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    }
+
+    loadData();
+  </script>
+
+</body>
+</html>
